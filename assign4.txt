@@ -1,0 +1,278 @@
+mysql> create table area(radius int, area int);
+Query OK, 0 rows affected (0.96 sec)
+
+mysql> show * from area;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '* from area' at line 1
+mysql> select* from area;
+Empty set (0.00 sec)
+
+mysql> desc area;
++--------+------+------+-----+---------+-------+
+| Field  | Type | Null | Key | Default | Extra |
++--------+------+------+-----+---------+-------+
+| radius | int  | YES  |     | NULL    |       |
+| area   | int  | YES  |     | NULL    |       |
++--------+------+------+-----+---------+-------+
+2 rows in set (0.00 sec)
+
+mysql> delimiter //
+
+mysql> create procedure areac()
+    -> begin
+    -> declare r int default 5;
+    -> while r<=9 do
+    -> insert into area values(r,3*r*r);
+    -> set r=r+1;
+    -> end while;
+    -> end;
+    -> //
+Query OK, 0 rows affected (0.11 sec)
+
+mysql> call areac();//
+Query OK, 1 row affected (0.70 sec)
+
+mysql> select* from area;//
++--------+------+
+| radius | area |
++--------+------+
+|      5 |   75 |
+|      6 |  108 |
+|      7 |  147 |
+|      8 |  192 |
+|      9 |  243 |
++--------+------+
+5 rows in set (0.00 sec)
+
+mysql> mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| 7316banking        |
+| ass2               |
+| assg4              |
+| banking            |
+| circle             |
+| information_schema |
+| movie              |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+10 rows in set (0.00 sec)
+
+mysql> create database library;
+Query OK, 1 row affected (0.12 sec)
+
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| 7316banking        |
+| ass2               |
+| assg4              |
+| banking            |
+| circle             |
+| information_schema |
+| library            |
+| movie              |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+11 rows in set (0.00 sec)
+
+mysql> use library;
+Database changed
+mysql> create table borrower(rollno int,name varchar(100), dateofissue DATE,nameofbook varchar(200), status char(1));
+Query OK, 0 rows affected (0.58 sec)
+
+mysql> create table fine(rollno int,date DATE, amt DECIMAL(10,2));
+Query OK, 0 rows affected (1.16 sec)
+
+mysql> delimiter //
+mysql> create procedure return_book( IN p_rollno int, IN p_nameofbook varchar(200))
+    -> begin
+    -> declare v_dateofissue DATE;
+    -> declare v_days INT;
+    -> declare v_fine_amt decimal(10,2) default 0;
+    -> declare v_status char(1);
+    -> select dateofissue,status 
+    -> into v_dateofissue,v_status
+    -> from borrower
+    -> where rollno=p_rollno AND nameofbook=p_nameofbook;
+    -> SET v_days= DATEDIFF(CURDATE(),v_dateofissue);
+    -> if v_days>15 AND v_days<=30 then
+    -> set v_fine_amt=(v_days-15)*5;
+    -> 
+    -> insert into fine(rollno,date,amt)
+    -> values(p_rollno,CURDATE(),v_fine_amt);
+    -> end if;
+    -> update borrower 
+    -> set status='R'
+    -> where rollno=p_rollno AND nameofbook=p_nameofbook;
+    -> end;
+    -> //
+Query OK, 0 rows affected (0.14 sec)
+
+mysql> -- Student who issued a book 20 days ago (eligible for fine)
+mysql> INSERT INTO borrower (rollno, name, dateofissue, nameofbook, status)
+    -> VALUES 
+    -> (101, 'Alice', DATE_SUB(CURDATE(), INTERVAL 20 DAY), 'Operating Systems', 'I');
+    -> 
+    -> -- Student who issued a book 10 days ago (no fine)
+    -> INSERT INTO borrower (rollno, name, dateofissue, nameofbook, status)
+    -> VALUES 
+    -> (102, 'Bob', DATE_SUB(CURDATE(), INTERVAL 10 DAY), 'Database Systems', 'I');
+    -> 
+    -> -- Student who issued a book 35 days ago (not handled in current logic, but will update status)
+    -> INSERT INTO borrower (rollno, name, dateofissue, nameofbook, status)
+    -> VALUES 
+    -> (103, 'Charlie', DATE_SUB(CURDATE(), INTERVAL 35 DAY), 'Networks', 'I');
+    -> //
+Query OK, 1 row affected (0.09 sec)
+
+Query OK, 1 row affected (0.18 sec)
+
+Query OK, 1 row affected (0.27 sec)
+
+mysql> select * from borrower;
+    -> //
++--------+---------+-------------+-------------------+--------+
+| rollno | name    | dateofissue | nameofbook        | status |
++--------+---------+-------------+-------------------+--------+
+|    101 | Alice   | 2025-07-08  | Operating Systems | I      |
+|    102 | Bob     | 2025-07-18  | Database Systems  | I      |
+|    103 | Charlie | 2025-06-23  | Networks          | I      |
++--------+---------+-------------+-------------------+--------+
+3 rows in set (0.00 sec)
+
+mysql> call return_book(101,'Operating System');
+    -> //
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> select * from fine;
+    -> //
+Empty set (0.00 sec)
+
+mysql> call return_book(103,'Networks');
+    -> //
+Query OK, 1 row affected (0.11 sec)
+
+mysql> select * from fine;
+    -> //
+Empty set (0.01 sec)
+
+mysql> select * from borrower;
+    -> //
++--------+---------+-------------+-------------------+--------+
+| rollno | name    | dateofissue | nameofbook        | status |
++--------+---------+-------------+-------------------+--------+
+|    101 | Alice   | 2025-07-08  | Operating Systems | I      |
+|    102 | Bob     | 2025-07-18  | Database Systems  | I      |
+|    103 | Charlie | 2025-06-23  | Networks          | R      |
++--------+---------+-------------+-------------------+--------+
+3 rows in set (0.00 sec)
+
+mysql> CREATE PROCEDURE return_book_v2(
+    ->     IN p_rollno INT,
+    ->     IN p_nameofbook VARCHAR(200)
+    -> )
+    -> BEGIN
+    ->     DECLARE v_dateofissue DATE;
+    ->     DECLARE v_days INT;
+    ->     DECLARE v_fine_amt DECIMAL(10,2) DEFAULT 0;
+    ->     DECLARE v_status CHAR(1);
+    ->     DECLARE not_found CONDITION FOR SQLSTATE '02000';
+    -> 
+    ->     DECLARE EXIT HANDLER FOR not_found
+    ->     BEGIN
+    ->         SIGNAL SQLSTATE '45000'
+    ->         SET MESSAGE_TEXT = 'Borrower record not found.';
+    ->     END;
+    -> 
+    ->     SELECT dateofissue, status
+    ->     INTO v_dateofissue, v_status
+    ->     FROM borrower
+    ->     WHERE rollno = p_rollno AND nameofbook = p_nameofbook;
+    -> 
+    ->     IF v_status = 'R' THEN
+    ->         SIGNAL SQLSTATE '45000'
+    ->         SET MESSAGE_TEXT = 'Book already returned.';
+    ->     END IF;
+    -> 
+    ->     SET v_days = DATEDIFF(CURDATE(), v_dateofissue);
+    -> 
+    ->     IF v_days > 15 AND v_days <= 30 THEN
+    ->         SET v_fine_amt = (v_days - 15) * 5;
+    ->         INSERT INTO fine(rollno, date, amt)
+    ->         VALUES (p_rollno, CURDATE(), v_fine_amt);
+    ->     END IF;
+    -> 
+    ->     UPDATE borrower
+    ->     SET status = 'R'
+    ->     WHERE rollno = p_rollno AND nameofbook = p_nameofbook;
+    -> END;
+    -> //
+Query OK, 0 rows affected (0.20 sec)
+
+mysql> CALL return_book_v2(101, 'Operating System');
+    -> //
+ERROR 1644 (45000): Borrower record not found.
+mysql> DELETE FROM borrower;
+    -> 
+    -> INSERT INTO borrower (rollno, name, dateofissue, nameofbook, status) VALUES
+    -> (101, 'Alice', DATE_SUB(CURDATE(), INTERVAL 20 DAY), 'Operating System', 'I'),
+    -> (102, 'Bob', DATE_SUB(CURDATE(), INTERVAL 10 DAY), 'Database Systems', 'I'),
+    -> (103, 'Charlie', DATE_SUB(CURDATE(), INTERVAL 30 DAY), 'Computer Networks', 'I'),
+    -> (104, 'David', DATE_SUB(CURDATE(), INTERVAL 5 DAY), 'Data Structures', 'I'),
+    -> (105, 'Eva', DATE_SUB(CURDATE(), INTERVAL 18 DAY), 'Java Programming', 'I');
+    -> //
+Query OK, 3 rows affected (0.11 sec)
+
+Query OK, 5 rows affected (0.24 sec)
+Records: 5  Duplicates: 0  Warnings: 0
+
+mysql> select * from borrower;
+    -> //
++--------+---------+-------------+-------------------+--------+
+| rollno | name    | dateofissue | nameofbook        | status |
++--------+---------+-------------+-------------------+--------+
+|    101 | Alice   | 2025-07-08  | Operating System  | I      |
+|    102 | Bob     | 2025-07-18  | Database Systems  | I      |
+|    103 | Charlie | 2025-06-28  | Computer Networks | I      |
+|    104 | David   | 2025-07-23  | Data Structures   | I      |
+|    105 | Eva     | 2025-07-10  | Java Programming  | I      |
++--------+---------+-------------+-------------------+--------+
+5 rows in set (0.00 sec)
+
+mysql> CALL return_book_v2(101, 'Operating System');
+    -> //
+Query OK, 1 row affected (0.19 sec)
+
+mysql> select * from fine;
+    -> //
++--------+------------+-------+
+| rollno | date       | amt   |
++--------+------------+-------+
+|    101 | 2025-07-28 | 25.00 |
++--------+------------+-------+
+1 row in set (0.00 sec)
+
+mysql> insert into borrower values (106,'ram','2025-07-01','dbms','I');
+    -> //
+Query OK, 1 row affected (0.10 sec)
+
+mysql> call return_book_v2(106,'dbms');
+    -> //
+Query OK, 1 row affected (0.21 sec)
+
+mysql> select * from fine;//
++--------+------------+-------+
+| rollno | date       | amt   |
++--------+------------+-------+
+|    101 | 2025-07-28 | 25.00 |
+|    106 | 2025-07-28 | 60.00 |
++--------+------------+-------+
+2 rows in set (0.00 sec)
+
+mysql> 

@@ -1,0 +1,129 @@
+mysql> show database;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'database' at line 1
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| 7316banking        |
+| as5                |
+| ass2               |
+| ass5               |
+| assg4              |
+| assg5              |
+| assg6              |
+| assgn4             |
+| assgn5             |
+| banking            |
+| circle             |
+| college            |
+| information_schema |
+| library            |
+| mock               |
+| mock2              |
+| mock4              |
+| movie              |
+| mysql              |
+| performance_schema |
+| school             |
+| student            |
+| sys                |
+| university         |
++--------------------+
+24 rows in set (0.04 sec)
+
+mysql> create database june;
+Query OK, 1 row affected (0.14 sec)
+
+mysql> use june;
+Database changed
+mysql> CREATE TABLE Stud_Marks (
+    ->     Name VARCHAR(50),
+    ->     Total_Marks INT
+    -> );
+Query OK, 0 rows affected (0.97 sec)
+
+mysql> 
+mysql> CREATE TABLE Result (
+    ->     Roll INT AUTO_INCREMENT PRIMARY KEY,
+    ->     Name VARCHAR(50),
+    ->     Class VARCHAR(50)
+    -> );
+Query OK, 0 rows affected (0.98 sec)
+
+mysql> DELIMITER $$
+mysql> 
+mysql> CREATE FUNCTION func_GetGrade(marks INT)
+    -> RETURNS VARCHAR(50)
+    -> DETERMINISTIC
+    -> BEGIN
+    ->     DECLARE grade VARCHAR(50);
+    -> 
+    ->     -- User defined exception: invalid marks
+    ->     IF marks > 1500 OR marks < 0 THEN
+    ->         SIGNAL SQLSTATE '45000' 
+    ->             SET MESSAGE_TEXT = 'Invalid Marks Entered';
+    ->     END IF;
+    -> 
+    ->     -- Categorization logic
+    ->     IF marks BETWEEN 990 AND 1500 THEN
+    ->         SET grade = 'Distinction';
+    ->     ELSEIF marks BETWEEN 900 AND 989 THEN
+    ->         SET grade = 'First Class';
+    ->     ELSEIF marks BETWEEN 825 AND 899 THEN
+    ->         SET grade = 'Higher Second Class';
+    ->     ELSE
+    ->         SET grade = 'Fail';
+    ->     END IF;
+    -> 
+    ->     RETURN grade;
+    -> END$$
+Query OK, 0 rows affected (0.18 sec)
+
+mysql> 
+mysql> DELIMITER ;
+mysql> DELIMITER $$
+mysql> 
+mysql> CREATE PROCEDURE proc_Grade(IN studentName VARCHAR(50), IN marks INT)
+    -> BEGIN
+    ->     DECLARE grade VARCHAR(50);
+    -> 
+    ->     -- Get grade using function
+    ->     SET grade = func_GetGrade(marks);
+    -> 
+    ->     -- Insert into Result table
+    ->     INSERT INTO Result (Name, Class)
+    ->     VALUES (studentName, grade);
+    -> END$$
+Query OK, 0 rows affected (0.19 sec)
+
+mysql> 
+mysql> DELIMITER ;
+mysql> INSERT INTO Stud_Marks VALUES ('Rahul', 1200), ('Neha', 950), ('Amit', 870), ('Kiran', 700);
+Query OK, 4 rows affected (0.13 sec)
+Records: 4  Duplicates: 0  Warnings: 0
+
+mysql> CALL proc_Grade('Rahul', 1200);
+Query OK, 1 row affected (0.09 sec)
+
+mysql> CALL proc_Grade('Neha', 950);
+Query OK, 1 row affected (0.12 sec)
+
+mysql> CALL proc_Grade('Amit', 870);
+Query OK, 1 row affected (0.11 sec)
+
+mysql> CALL proc_Grade('Kiran', 700);
+Query OK, 1 row affected (0.09 sec)
+
+mysql> SELECT * FROM Result;
++------+-------+---------------------+
+| Roll | Name  | Class               |
++------+-------+---------------------+
+|    1 | Rahul | Distinction         |
+|    2 | Neha  | First Class         |
+|    3 | Amit  | Higher Second Class |
+|    4 | Kiran | Fail                |
++------+-------+---------------------+
+4 rows in set (0.00 sec)
+
+mysql> tee a6.txt
+

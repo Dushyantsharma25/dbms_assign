@@ -1,0 +1,427 @@
+mysql> use movie
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+mysql> show tables;
++-----------------+
+| Tables_in_movie |
++-----------------+
+| Actor           |
+| Direct          |
+| Director        |
+| MCast           |
+| Movie           |
++-----------------+
+5 rows in set (0.00 sec)
+
+mysql> select * from Movie;
++-----+-----------+------------+--------+
+| mid | title     | rd         | rating |
++-----+-----------+------------+--------+
+|   1 | sholay    | 2004-07-31 |      2 |
+|   2 | lagaan    | 2000-07-31 |      3 |
+|   3 | dangal    | 2014-07-31 |      4 |
+|   4 | war       | 2022-07-31 |      5 |
+|   5 | pk        | 2018-07-31 |      5 |
+|   6 | kanchana  | 2015-07-31 |      3 |
+|   7 | bahubali  | 2017-07-31 |      4 |
+|   8 | 1917      | 1917-07-31 |      2 |
+|   9 | khiladi   | 2005-07-31 |      6 |
+|  10 | khiladi 2 | 2010-07-31 |      7 |
++-----+-----------+------------+--------+
+10 rows in set (0.00 sec)
+
+mysql> select * from MCast;
++------+------+---------------+
+| mid  | aid  | role          |
++------+------+---------------+
+|    2 |    1 | lead_actor    |
+|    3 |    1 | lead_actor    |
+|    5 |    1 | lead_actor    |
+|    9 |    2 | lead_actor    |
+|   10 |    2 | lead_actor    |
+|    1 |    5 | lead_actor    |
+|    4 |    6 | lead_actor    |
+|    6 |    2 | lead_actor    |
+|    7 |    7 | lead_actor    |
+|    8 |    7 | lead_actor    |
+|    8 |    1 | side_actor    |
+|    8 |    2 | support_actor |
++------+------+---------------+
+12 rows in set (0.00 sec)
+
+mysql> select * from Actor where aid in ( select aid from MCast where mid in(select mid from Movie where title in('sholay','1917')));
++-----+---------+--------+--------+
+| aid | fname   | lname  | pay    |
++-----+---------+--------+--------+
+|   5 | amitabh | bachan |  80000 |
+|   7 | john    | doe    |  90000 |
+|   1 | amir    | khan   |  80000 |
+|   2 | akshay  | kumar  | 100000 |
++-----+---------+--------+--------+
+4 rows in set (0.01 sec)
+
+mysql> select * from Direct;
++------+------+
+| mid  | did  |
++------+------+
+|    1 |    1 |
+|    2 |    7 |
+|    3 |    4 |
+|    4 |    2 |
+|    5 |    2 |
+|    6 |    3 |
+|    7 |    2 |
+|    8 |    6 |
+|    9 |    3 |
+|   10 |    3 |
++------+------+
+10 rows in set (0.02 sec)
+
+mysql> select * from Director;
++-----+--------------+----------+--------+
+| did | fname        | lname    | gender |
++-----+--------------+----------+--------+
+|   1 | yash         | chopra   | m      |
+|   2 | sanjay leela | bhansali | m      |
+|   3 | rohit        | shetty   | m      |
+|   4 | ajay         | devgan   | m      |
+|   5 | anushka      | sharma   | f      |
+|   6 | chirostopher | nolan    | m      |
+|   7 | raj          | khana    | m      |
++-----+--------------+----------+--------+
+7 rows in set (0.02 sec)
+
+mysql> update Direct set did=5 where mid=10;
+Query OK, 1 row affected (0.07 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> select * from Direct;
++------+------+
+| mid  | did  |
++------+------+
+|    1 |    1 |
+|    2 |    7 |
+|    3 |    4 |
+|    4 |    2 |
+|    5 |    2 |
+|    6 |    3 |
+|    7 |    2 |
+|    8 |    6 |
+|    9 |    3 |
+|   10 |    5 |
++------+------+
+10 rows in set (0.00 sec)
+
+mysql> select * from Movie where mid in(select mid from Direct where did in(select did from Director where gender='f'));
++-----+-----------+------------+--------+
+| mid | title     | rd         | rating |
++-----+-----------+------------+--------+
+|  10 | khiladi 2 | 2010-07-31 |      7 |
++-----+-----------+------------+--------+
+1 row in set (0.00 sec)
+
+mysql> select * from Actor;
++-----+---------+--------+--------+
+| aid | fname   | lname  | pay    |
++-----+---------+--------+--------+
+|   1 | amir    | khan   |  80000 |
+|   2 | akshay  | kumar  | 100000 |
+|   4 | sunny   | deol   |  80000 |
+|   5 | amitabh | bachan |  80000 |
+|   6 | hritik  | roshan |  80000 |
+|   7 | john    | doe    |  90000 |
++-----+---------+--------+--------+
+6 rows in set (0.00 sec)
+
+mysql> update Actor set pay=300000 where aid=2;
+Query OK, 1 row affected (0.09 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> select * from Actor;
++-----+---------+--------+--------+
+| aid | fname   | lname  | pay    |
++-----+---------+--------+--------+
+|   1 | amir    | khan   |  80000 |
+|   2 | akshay  | kumar  | 300000 |
+|   4 | sunny   | deol   |  80000 |
+|   5 | amitabh | bachan |  80000 |
+|   6 | hritik  | roshan |  80000 |
+|   7 | john    | doe    |  90000 |
++-----+---------+--------+--------+
+6 rows in set (0.00 sec)
+
+mysql> select role from MCast where aid in ( select aid from Actor where pay>200000);
++---------------+
+| role          |
++---------------+
+| lead_actor    |
+| lead_actor    |
+| lead_actor    |
+| support_actor |
++---------------+
+4 rows in set (0.00 sec)
+
+mysql> select * from MCast;
++------+------+---------------+
+| mid  | aid  | role          |
++------+------+---------------+
+|    2 |    1 | lead_actor    |
+|    3 |    1 | lead_actor    |
+|    5 |    1 | lead_actor    |
+|    9 |    2 | lead_actor    |
+|   10 |    2 | lead_actor    |
+|    1 |    5 | lead_actor    |
+|    4 |    6 | lead_actor    |
+|    6 |    2 | lead_actor    |
+|    7 |    7 | lead_actor    |
+|    8 |    7 | lead_actor    |
+|    8 |    1 | side_actor    |
+|    8 |    2 | support_actor |
++------+------+---------------+
+12 rows in set (0.00 sec)
+
+mysql> select mid,(select fname from Actor where aid=C.aid) as fname,(select lname from Actor where aid=C.aid) as lname, pay from MCast C where pay=(select max(pay) from MCast where mid=C.mid);
+ERROR 1054 (42S22): Unknown column 'pay' in 'field list'
+mysql> exit
+mysql> show databases
+    -> show databases'
+    '> ^C
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| 7316banking        |
+| ass2               |
+| banking            |
+| information_schema |
+| movie              |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+8 rows in set (0.04 sec)
+
+mysql> use movie;
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+mysql> select * from movie natural join Direct natural join Director;
+ERROR 1146 (42S02): Table 'movie.movie' doesn't exist
+mysql> select * from Movie natural join Direct natural join Director;
++------+-----+-----------+------------+--------+--------------+----------+--------+
+| did  | mid | title     | rd         | rating | fname        | lname    | gender |
++------+-----+-----------+------------+--------+--------------+----------+--------+
+|    1 |   1 | sholay    | 2004-07-31 |      2 | yash         | chopra   | m      |
+|    2 |   7 | bahubali  | 2017-07-31 |      4 | sanjay leela | bhansali | m      |
+|    2 |   5 | pk        | 2018-07-31 |      5 | sanjay leela | bhansali | m      |
+|    2 |   4 | war       | 2022-07-31 |      5 | sanjay leela | bhansali | m      |
+|    3 |   9 | khiladi   | 2005-07-31 |      6 | rohit        | shetty   | m      |
+|    3 |   6 | kanchana  | 2015-07-31 |      3 | rohit        | shetty   | m      |
+|    4 |   3 | dangal    | 2014-07-31 |      4 | ajay         | devgan   | m      |
+|    5 |  10 | khiladi 2 | 2010-07-31 |      7 | anushka      | sharma   | f      |
+|    6 |   8 | 1917      | 1917-07-31 |      2 | chirostopher | nolan    | m      |
+|    7 |   2 | lagaan    | 2000-07-31 |      3 | raj          | khana    | m      |
++------+-----+-----------+------------+--------+--------------+----------+--------+
+10 rows in set (0.01 sec)
+
+mysql> select * from Movie natural join Direct natural join Director where fname='sanjay',lname='leela';
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ',lname='leela'' at line 1
+mysql> select * from Movie natural join Direct natural join Director where fname='sanjay'and lname='leela';
+Empty set (0.00 sec)
+
+mysql> select * from Movie natural join Direct natural join Director where fname='sanjay leela';
++------+-----+----------+------------+--------+--------------+----------+--------+
+| did  | mid | title    | rd         | rating | fname        | lname    | gender |
++------+-----+----------+------------+--------+--------------+----------+--------+
+|    2 |   4 | war      | 2022-07-31 |      5 | sanjay leela | bhansali | m      |
+|    2 |   5 | pk       | 2018-07-31 |      5 | sanjay leela | bhansali | m      |
+|    2 |   7 | bahubali | 2017-07-31 |      4 | sanjay leela | bhansali | m      |
++------+-----+----------+------------+--------+--------------+----------+--------+
+3 rows in set (0.00 sec)
+
+mysql> select a.aid, a.fname, a.lname, a.role from Actor a cross join MCast c;
+ERROR 1054 (42S22): Unknown column 'a.role' in 'field list'
+mysql> desc Actor;
++-------+-------------+------+-----+---------+-------+
+| Field | Type        | Null | Key | Default | Extra |
++-------+-------------+------+-----+---------+-------+
+| aid   | int         | NO   | PRI | NULL    |       |
+| fname | varchar(20) | YES  |     | NULL    |       |
+| lname | varchar(20) | YES  |     | NULL    |       |
+| pay   | int         | YES  |     | NULL    |       |
++-------+-------------+------+-----+---------+-------+
+4 rows in set (0.00 sec)
+
+mysql> select a.aid, a.fname, a.lname, c.role from Actor a cross join MCast c;
++-----+---------+--------+---------------+
+| aid | fname   | lname  | role          |
++-----+---------+--------+---------------+
+|   7 | john    | doe    | lead_actor    |
+|   6 | hritik  | roshan | lead_actor    |
+|   5 | amitabh | bachan | lead_actor    |
+|   4 | sunny   | deol   | lead_actor    |
+|   2 | akshay  | kumar  | lead_actor    |
+|   1 | amir    | khan   | lead_actor    |
+|   7 | john    | doe    | lead_actor    |
+|   6 | hritik  | roshan | lead_actor    |
+|   5 | amitabh | bachan | lead_actor    |
+|   4 | sunny   | deol   | lead_actor    |
+|   2 | akshay  | kumar  | lead_actor    |
+|   1 | amir    | khan   | lead_actor    |
+|   7 | john    | doe    | lead_actor    |
+|   6 | hritik  | roshan | lead_actor    |
+|   5 | amitabh | bachan | lead_actor    |
+|   4 | sunny   | deol   | lead_actor    |
+|   2 | akshay  | kumar  | lead_actor    |
+|   1 | amir    | khan   | lead_actor    |
+|   7 | john    | doe    | lead_actor    |
+|   6 | hritik  | roshan | lead_actor    |
+|   5 | amitabh | bachan | lead_actor    |
+|   4 | sunny   | deol   | lead_actor    |
+|   2 | akshay  | kumar  | lead_actor    |
+|   1 | amir    | khan   | lead_actor    |
+|   7 | john    | doe    | lead_actor    |
+|   6 | hritik  | roshan | lead_actor    |
+|   5 | amitabh | bachan | lead_actor    |
+|   4 | sunny   | deol   | lead_actor    |
+|   2 | akshay  | kumar  | lead_actor    |
+|   1 | amir    | khan   | lead_actor    |
+|   7 | john    | doe    | lead_actor    |
+|   6 | hritik  | roshan | lead_actor    |
+|   5 | amitabh | bachan | lead_actor    |
+|   4 | sunny   | deol   | lead_actor    |
+|   2 | akshay  | kumar  | lead_actor    |
+|   1 | amir    | khan   | lead_actor    |
+|   7 | john    | doe    | lead_actor    |
+|   6 | hritik  | roshan | lead_actor    |
+|   5 | amitabh | bachan | lead_actor    |
+|   4 | sunny   | deol   | lead_actor    |
+|   2 | akshay  | kumar  | lead_actor    |
+|   1 | amir    | khan   | lead_actor    |
+|   7 | john    | doe    | lead_actor    |
+|   6 | hritik  | roshan | lead_actor    |
+|   5 | amitabh | bachan | lead_actor    |
+|   4 | sunny   | deol   | lead_actor    |
+|   2 | akshay  | kumar  | lead_actor    |
+|   1 | amir    | khan   | lead_actor    |
+|   7 | john    | doe    | lead_actor    |
+|   6 | hritik  | roshan | lead_actor    |
+|   5 | amitabh | bachan | lead_actor    |
+|   4 | sunny   | deol   | lead_actor    |
+|   2 | akshay  | kumar  | lead_actor    |
+|   1 | amir    | khan   | lead_actor    |
+|   7 | john    | doe    | lead_actor    |
+|   6 | hritik  | roshan | lead_actor    |
+|   5 | amitabh | bachan | lead_actor    |
+|   4 | sunny   | deol   | lead_actor    |
+|   2 | akshay  | kumar  | lead_actor    |
+|   1 | amir    | khan   | lead_actor    |
+|   7 | john    | doe    | side_actor    |
+|   6 | hritik  | roshan | side_actor    |
+|   5 | amitabh | bachan | side_actor    |
+|   4 | sunny   | deol   | side_actor    |
+|   2 | akshay  | kumar  | side_actor    |
+|   1 | amir    | khan   | side_actor    |
+|   7 | john    | doe    | support_actor |
+|   6 | hritik  | roshan | support_actor |
+|   5 | amitabh | bachan | support_actor |
+|   4 | sunny   | deol   | support_actor |
+|   2 | akshay  | kumar  | support_actor |
+|   1 | amir    | khan   | support_actor |
++-----+---------+--------+---------------+
+72 rows in set (0.00 sec)
+
+mysql> select m.* ,d.* from Movie m left outer join Direct dr on m.mid=dr.did left outer join Director d on dr.did=d.did where year(m.rd) in (2017,2022);
++-----+----------+------------+--------+------+-------+--------+--------+
+| mid | title    | rd         | rating | did  | fname | lname  | gender |
++-----+----------+------------+--------+------+-------+--------+--------+
+|   4 | war      | 2022-07-31 |      5 |    4 | ajay  | devgan | m      |
+|   7 | bahubali | 2017-07-31 |      4 |    7 | raj   | khana  | m      |
++-----+----------+------------+--------+------+-------+--------+--------+
+2 rows in set (0.00 sec)
+
+mysql> SELECT A.* FROM Cast C RIGHT OUTER JOIN Actor A ON C.a_id = A.a_id WHERE C.m_id IS NULL OR C.m_id NOT IN (SELECT m_id FROM Movie WHERE title = 'Dangal');
+ERROR 1146 (42S02): Table 'movie.Cast' doesn't exist
+mysql> SELECT A.* FROM MCast C RIGHT OUTER JOIN Actor A ON C.aid = A.aid WHERE C.mid IS NULL OR C.mid NOT IN (SELECT mid FROM Movie WHERE title = 'Dangal');
++-----+---------+--------+--------+
+| aid | fname   | lname  | pay    |
++-----+---------+--------+--------+
+|   1 | amir    | khan   |  80000 |
+|   1 | amir    | khan   |  80000 |
+|   1 | amir    | khan   |  80000 |
+|   2 | akshay  | kumar  | 300000 |
+|   2 | akshay  | kumar  | 300000 |
+|   2 | akshay  | kumar  | 300000 |
+|   2 | akshay  | kumar  | 300000 |
+|   4 | sunny   | deol   |  80000 |
+|   5 | amitabh | bachan |  80000 |
+|   6 | hritik  | roshan |  80000 |
+|   7 | john    | doe    |  90000 |
+|   7 | john    | doe    |  90000 |
++-----+---------+--------+--------+
+12 rows in set (0.00 sec)
+
+mysql> select m.*, null as aid, null as fname, null as lname, null as salary from Movie m left join MCast c on m.mid=c.mid left join 
+    -> 
+    -> 
+    -> 
+    -> 
+    -> 
+    -> 
+    -> 
+    -> select m.*, null as aid, null as fname, null as lname, null as salary from Movie m left join MCast c on m.mid=c.mid left join
+    -> ^C
+mysql> select m.*, null as aid, null as fname, null as lname, null as salary from Movie m left join MCast c on m.mid=c.mid left join Actor a on c.aid=a.aid where a.fname is null or a.fname='akshay' or a.lname='kumar' union select null as mid , null as tiltle , null as rd, a.* from Actor a left join MCast c on a.aid=c.aid left join Movie m on c.mid=m.mid where m.tile is null or m.title<>'1917';
+ERROR 1054 (42S22): Unknown column 'm.tile' in 'where clause'
+mysql> select m.*, null as aid, null as fname, null as lname, null as salary from Movie m left join MCast c on m.mid=c.mid left join Actor a on c.aid=a.aid where a.fname is null or a.fname='akshay' or a.lname='kumar' union select null as mid , null as tiltle , null as rd, a.* from Actor a left join MCast c on a.aid=c.aid left join Movie m on c.mid=m.mid where m.title is null or m.title<>'1917';
+ERROR 1222 (21000): The used SELECT statements have a different number of columns
+mysql> SELECT m.*, NULL AS aid, NULL AS fname, NULL AS lname, NULL AS salary FROM Movie m LEFT JOIN MCast c ON m.mid = c.mid LEFT JOIN Actor a ON c.aid = a.aid WHERE a.fname IS NULL OR NOT (a.fname = 'Akshay' AND a.lname = 'Kumar') UNION SELECT NULL AS mid, NULL AS title, NULL AS release_date, a.* FROM Actor a LEFT JOIN MCast c ON a.aid = c.aid LEFT JOIN Movie m ON c.mid = m.mid WHERE m.title IS NULL OR m.title <> '1917';
+ERROR 1222 (21000): The used SELECT statements have a different number of columns
+mysql> desc Movie;
++--------+-------------+------+-----+---------+-------+
+| Field  | Type        | Null | Key | Default | Extra |
++--------+-------------+------+-----+---------+-------+
+| mid    | int         | NO   | PRI | NULL    |       |
+| title  | varchar(20) | YES  |     | NULL    |       |
+| rd     | date        | YES  |     | NULL    |       |
+| rating | int         | YES  |     | NULL    |       |
++--------+-------------+------+-----+---------+-------+
+4 rows in set (0.00 sec)
+
+mysql> SELECT m.mid, m.rating, m.rd, m.title, NULL AS aid, NULL AS fname, NULL AS lname, NULL AS salary FROM Movie m LEFT JOIN MCast c ON m.mid = c.mid LEFT JOIN Actor a ON c.aid = a.aid WHERE a.fname IS NULL OR NOT (a.fname = 'Akshay' AND a.lname = 'Kumar') UNION SELECT NULL, NULL, NULL, NULL, a.aid, a.fname, a.lname, a.salary FROM Actor a LEFT JOIN MCast c ON a.aid = c.aid LEFT JOIN Movie m ON c.mid = m.mid WHERE m.title IS NULL OR m.title <> '1917';
+ERROR 1054 (42S22): Unknown column 'a.salary' in 'field list'
+mysql> desc Actor;
++-------+-------------+------+-----+---------+-------+
+| Field | Type        | Null | Key | Default | Extra |
++-------+-------------+------+-----+---------+-------+
+| aid   | int         | NO   | PRI | NULL    |       |
+| fname | varchar(20) | YES  |     | NULL    |       |
+| lname | varchar(20) | YES  |     | NULL    |       |
+| pay   | int         | YES  |     | NULL    |       |
++-------+-------------+------+-----+---------+-------+
+4 rows in set (0.00 sec)
+
+mysql> SELECT m.mid, m.rating, m.rd, m.title, NULL AS aid, NULL AS fname, NULL AS lname, NULL AS pay FROM Movie m LEFT JOIN MCast c ON m.mid = c.mid LEFT JOIN Actor a ON c.aid = a.aid WHERE a.fname IS NULL OR NOT (a.fname = 'Akshay' AND a.lname = 'Kumar') UNION SELECT NULL, NULL, NULL, NULL, a.aid, a.fname, a.lname, a.pay  FROM Actor a LEFT JOIN MCast c ON a.aid = c.aid LEFT JOIN Movie m ON c.mid = m.mid WHERE m.title IS NULL OR m.title <> '1917';
++------+--------+------------+----------+------+---------+--------+--------+
+| mid  | rating | rd         | title    | aid  | fname   | lname  | pay    |
++------+--------+------------+----------+------+---------+--------+--------+
+|    1 |      2 | 2004-07-31 | sholay   | NULL | NULL    | NULL   |   NULL |
+|    2 |      3 | 2000-07-31 | lagaan   | NULL | NULL    | NULL   |   NULL |
+|    3 |      4 | 2014-07-31 | dangal   | NULL | NULL    | NULL   |   NULL |
+|    4 |      5 | 2022-07-31 | war      | NULL | NULL    | NULL   |   NULL |
+|    5 |      5 | 2018-07-31 | pk       | NULL | NULL    | NULL   |   NULL |
+|    7 |      4 | 2017-07-31 | bahubali | NULL | NULL    | NULL   |   NULL |
+|    8 |      2 | 1917-07-31 | 1917     | NULL | NULL    | NULL   |   NULL |
+| NULL |   NULL | NULL       | NULL     |    1 | amir    | khan   |  80000 |
+| NULL |   NULL | NULL       | NULL     |    2 | akshay  | kumar  | 300000 |
+| NULL |   NULL | NULL       | NULL     |    4 | sunny   | deol   |  80000 |
+| NULL |   NULL | NULL       | NULL     |    5 | amitabh | bachan |  80000 |
+| NULL |   NULL | NULL       | NULL     |    6 | hritik  | roshan |  80000 |
+| NULL |   NULL | NULL       | NULL     |    7 | john    | doe    |  90000 |
++------+--------+------------+----------+------+---------+--------+--------+
+13 rows in set (0.00 sec)
+
+mysql> exit

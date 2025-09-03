@@ -1,0 +1,134 @@
+mysql> CREATE TABLE library (
+    ->     book_id INT PRIMARY KEY,
+    ->     title VARCHAR(255),
+    ->     author VARCHAR(255),
+    ->     published_year INT
+    -> );
+Query OK, 0 rows affected (0.29 sec)
+
+mysql> CREATE TABLE library_audit (
+    ->     audit_id INT AUTO_INCREMENT PRIMARY KEY,
+    ->     action_type VARCHAR(10),  -- 'UPDATE' or 'DELETE'
+    ->     book_id INT,
+    ->     title VARCHAR(255),
+    ->     author VARCHAR(255),
+    ->     published_year INT,
+    ->     action_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    -> );
+Query OK, 0 rows affected (0.18 sec)
+
+mysql> DELIMITER $$
+mysql> 
+mysql> CREATE TRIGGER trg_library_after_update
+    -> AFTER UPDATE ON library
+    -> FOR EACH ROW
+    -> BEGIN
+    ->     INSERT INTO library_audit (
+    ->         action_type,
+    ->         book_id,
+    ->         title,
+    ->         author,
+    ->         published_year
+    ->     )
+    ->     VALUES (
+    ->         'UPDATE',
+    ->         OLD.book_id,
+    ->         OLD.title,
+    ->         OLD.author,
+    ->         OLD.published_year
+    ->     );
+    -> END $$
+Query OK, 0 rows affected (0.06 sec)
+
+mysql> 
+mysql> DELIMITER ;
+mysql> DELIMITER $$
+mysql> 
+mysql> CREATE TRIGGER trg_library_after_delete
+    -> AFTER DELETE ON library
+    -> FOR EACH ROW
+    -> BEGIN
+    ->     INSERT INTO library_audit (
+    ->         action_type,
+    ->         book_id,
+    ->         title,
+    ->         author,
+    ->         published_year
+    ->     )
+    ->     VALUES (
+    ->         'DELETE',
+    ->         OLD.book_id,
+    ->         OLD.title,
+    ->         OLD.author,
+    ->         OLD.published_year
+    ->     );
+    -> END $$
+Query OK, 0 rows affected (0.05 sec)
+
+mysql> 
+mysql> DELIMITER ;
+mysql> INSERT INTO library (book_id, title, author, published_year) VALUES
+    -> (1, 'The Great Gatsby', 'F. Scott Fitzgerald', 1925),
+    -> (2, '1984', 'George Orwell', 1949),
+    -> (3, 'To Kill a Mockingbird', 'Harper Lee', 1960);
+Query OK, 3 rows affected (0.05 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql> UPDATE library
+    -> SET title = 'Nineteen Eighty-Four'
+    -> WHERE book_id = 2;
+Query OK, 1 row affected (0.03 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> DELETE FROM library
+    -> WHERE book_id = 3;
+Query OK, 1 row affected (0.02 sec)
+
+mysql> SELECT * FROM library_audit;
++----------+-------------+---------+-----------------------+---------------+----------------+---------------------+
+| audit_id | action_type | book_id | title                 | author        | published_year | action_timestamp    |
++----------+-------------+---------+-----------------------+---------------+----------------+---------------------+
+|        1 | UPDATE      |       2 | 1984                  | George Orwell |           1949 | 2025-09-03 12:27:16 |
+|        2 | DELETE      |       3 | To Kill a Mockingbird | Harper Lee    |           1960 | 2025-09-03 12:27:25 |
++----------+-------------+---------+-----------------------+---------------+----------------+---------------------+
+2 rows in set (0.00 sec)
+
+mysql> INSERT INTO library (book_id, title, author, published_year) VALUES
+    -> (4, 'Brave New World', 'Aldous Huxley', 1932),
+    -> (5, 'The Catcher in the Rye', 'J.D. Salinger', 1951);
+Query OK, 2 rows affected (0.04 sec)
+Records: 2  Duplicates: 0  Warnings: 0
+
+mysql> SELECT * FROM library;
++---------+------------------------+---------------------+----------------+
+| book_id | title                  | author              | published_year |
++---------+------------------------+---------------------+----------------+
+|       1 | The Great Gatsby       | F. Scott Fitzgerald |           1925 |
+|       2 | Nineteen Eighty-Four   | George Orwell       |           1949 |
+|       4 | Brave New World        | Aldous Huxley       |           1932 |
+|       5 | The Catcher in the Rye | J.D. Salinger       |           1951 |
++---------+------------------------+---------------------+----------------+
+4 rows in set (0.00 sec)
+
+mysql> UPDATE library
+    -> SET author = 'Francis Scott Fitzgerald'
+    -> WHERE book_id = 1;
+Query OK, 1 row affected (0.04 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> DELETE FROM library
+    -> WHERE book_id = 4;
+Query OK, 1 row affected (0.02 sec)
+
+mysql> SELECT * FROM library_audit ORDER BY audit_id DESC;
++----------+-------------+---------+-----------------------+---------------------+----------------+---------------------+
+| audit_id | action_type | book_id | title                 | author              | published_year | action_timestamp    |
++----------+-------------+---------+-----------------------+---------------------+----------------+---------------------+
+|        4 | DELETE      |       4 | Brave New World       | Aldous Huxley       |           1932 | 2025-09-03 12:29:33 |
+|        3 | UPDATE      |       1 | The Great Gatsby      | F. Scott Fitzgerald |           1925 | 2025-09-03 12:29:24 |
+|        2 | DELETE      |       3 | To Kill a Mockingbird | Harper Lee          |           1960 | 2025-09-03 12:27:25 |
+|        1 | UPDATE      |       2 | 1984                  | George Orwell       |           1949 | 2025-09-03 12:27:16 |
++----------+-------------+---------+-----------------------+---------------------+----------------+---------------------+
+4 rows in set (0.00 sec)
+
+mysql> 

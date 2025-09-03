@@ -1,0 +1,74 @@
+
+mysql>create database student;
+
+    ->Query OK, 0 rows affected (0.49 sec)
+
+
+mysql> CREATE TABLE O_RollCall (
+    ->     RollNo INT PRIMARY KEY,
+    ->     Name   VARCHAR(50)
+    -> );
+Query OK, 0 rows affected (0.49 sec)
+
+mysql> CREATE TABLE N_RollCall (
+    ->     RollNo INT,
+    ->     Name   VARCHAR(50)
+    -> );
+Query OK, 0 rows affected (1.09 sec)
+
+mysql> INSERT INTO O_RollCall VALUES (1, 'Sahil'), (2, 'Raju');
+Query OK, 2 rows affected (0.13 sec)
+Records: 2  Duplicates: 0  Warnings: 0
+
+mysql> INSERT INTO N_RollCall VALUES (2, 'Raju'), (3, 'Tara'), (4, 'Bhanu');
+Query OK, 3 rows affected (0.10 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql> DELIMITER $$
+mysql> 
+mysql> CREATE PROCEDURE merge_RollCall(IN minRoll INT)
+    -> BEGIN
+    ->     DECLARE done INT DEFAULT FALSE;
+    ->     DECLARE rno INT;
+    ->     DECLARE rname VARCHAR(225);
+    -> 
+    ->     
+    ->     DECLARE cur CURSOR FOR
+    ->         SELECT RollNo, Name FROM N_RollCall WHERE RollNo >= minRoll;
+    -> 
+    ->     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+    -> 
+    ->     OPEN cur;
+    ->     read_loop: LOOP
+    ->         FETCH cur INTO rno, rname;
+    ->         IF done THEN
+    ->             LEAVE read_loop;
+    ->         END IF;
+    -> 
+    ->        
+    ->         IF NOT EXISTS (SELECT 1 FROM O_RollCall WHERE RollNo = rno) THEN
+    ->             INSERT INTO O_RollCall (RollNo, Name) VALUES (rno, rname);
+    ->         END IF;
+    ->     END LOOP;
+    -> 
+    ->     CLOSE cur;
+    -> END$$
+Query OK, 0 rows affected (0.15 sec)
+
+mysql> 
+mysql> DELIMITER ;
+mysql> CALL merge_RollCall(2);
+Query OK, 0 rows affected (0.17 sec)
+
+mysql> SELECT * FROM O_RollCall;
++--------+-------+
+| RollNo | Name  |
++--------+-------+
+|      1 | Sahil |
+|      2 | Raju  |
+|      3 | Tara  |
+|      4 | Bhanu |
++--------+-------+
+4 rows in set (0.00 sec)
+
+
