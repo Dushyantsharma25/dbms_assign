@@ -1,0 +1,219 @@
+> db.students.insertOne({
+...   name: "Ram",
+...   age: 22,
+...   department: "Computer Science",
+...   courses: ["DBMS", "OS", "AI"],
+...   gpa: 3.7
+... });
+{
+	"acknowledged" : true,
+	"insertedId" : ObjectId("68c12162800a798220d4bd88")
+}
+> db.students.insertMany([
+...   {
+...     name: "Bablu",
+...     age: 23,
+...     department: "IT",
+...     courses: ["Networks", "DBMS"],
+...     gpa: 3.5
+...   },
+...   {
+...     name: "Krishna",
+...     age: 21,
+...     department: "Electronics",
+...     courses: ["Maths", "Circuits"],
+...     gpa: 3.8
+...   }
+... ]);
+{
+	"acknowledged" : true,
+	"insertedIds" : [
+		ObjectId("68c121c2800a798220d4bd89"),
+		ObjectId("68c121c2800a798220d4bd8a")
+	]
+}
+> db.students.find().pretty();
+{
+	"_id" : ObjectId("68c12162800a798220d4bd88"),
+	"name" : "Ram",
+	"age" : 22,
+	"department" : "Computer Science",
+	"courses" : [
+		"DBMS",
+		"OS",
+		"AI"
+	],
+	"gpa" : 3.7
+}
+{
+	"_id" : ObjectId("68c121c2800a798220d4bd89"),
+	"name" : "Bablu",
+	"age" : 23,
+	"department" : "IT",
+	"courses" : [
+		"Networks",
+		"DBMS"
+	],
+	"gpa" : 3.5
+}
+{
+	"_id" : ObjectId("68c121c2800a798220d4bd8a"),
+	"name" : "Krishna",
+	"age" : 21,
+	"department" : "Electronics",
+	"courses" : [
+		"Maths",
+		"Circuits"
+	],
+	"gpa" : 3.8
+}
+> db.students.find({ gpa: { $gt: 3.6 } }).pretty();
+{
+	"_id" : ObjectId("68c12162800a798220d4bd88"),
+	"name" : "Ram",
+	"age" : 22,
+	"department" : "Computer Science",
+	"courses" : [
+		"DBMS",
+		"OS",
+		"AI"
+	],
+	"gpa" : 3.7
+}
+{
+	"_id" : ObjectId("68c121c2800a798220d4bd8a"),
+	"name" : "Krishna",
+	"age" : 21,
+	"department" : "Electronics",
+	"courses" : [
+		"Maths",
+		"Circuits"
+	],
+	"gpa" : 3.8
+}
+> db.students.find({ department: "Computer Science" }).pretty();
+{
+	"_id" : ObjectId("68c12162800a798220d4bd88"),
+	"name" : "Ram",
+	"age" : 22,
+	"department" : "Computer Science",
+	"courses" : [
+		"DBMS",
+		"OS",
+		"AI"
+	],
+	"gpa" : 3.7
+}
+> db.students.updateOne(
+...   { name: "Ram" },
+...   { $set: { gpa: 3.6 } }
+... );
+{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+> db.students.find().pretty();
+{
+	"_id" : ObjectId("68c12162800a798220d4bd88"),
+	"name" : "Ram",
+	"age" : 22,
+	"department" : "Computer Science",
+	"courses" : [
+		"DBMS",
+		"OS",
+		"AI"
+	],
+	"gpa" : 3.6
+}
+{
+	"_id" : ObjectId("68c121c2800a798220d4bd89"),
+	"name" : "Bablu",
+	"age" : 23,
+	"department" : "IT",
+	"courses" : [
+		"Networks",
+		"DBMS"
+	],
+	"gpa" : 3.5
+}
+{
+	"_id" : ObjectId("68c121c2800a798220d4bd8a"),
+	"name" : "Krishna",
+	"age" : 21,
+	"department" : "Electronics",
+	"courses" : [
+		"Maths",
+		"Circuits"
+	],
+	"gpa" : 3.8
+}
+> db.students.deleteOne({ name: "Ram" });
+{ "acknowledged" : true, "deletedCount" : 1 }
+> db.students.find().pretty();
+{
+	"_id" : ObjectId("68c121c2800a798220d4bd89"),
+	"name" : "Bablu",
+	"age" : 23,
+	"department" : "IT",
+	"courses" : [
+		"Networks",
+		"DBMS"
+	],
+	"gpa" : 3.5
+}
+{
+	"_id" : ObjectId("68c121c2800a798220d4bd8a"),
+	"name" : "Krishna",
+	"age" : 21,
+	"department" : "Electronics",
+	"courses" : [
+		"Maths",
+		"Circuits"
+	],
+	"gpa" : 3.8
+}
+> db.students.save({
+...   name: "Tulsi",
+...   age: 24,
+...   department: "Mechanical",
+...   courses: ["Thermodynamics"],
+...   gpa: 3.3
+... });
+WriteResult({
+	"nMatched" : 0,
+	"nUpserted" : 1,
+	"nModified" : 0,
+	"_id" : ObjectId("507f1f77bcf86cd799439011")
+})
+> db.students.find().pretty();
+{
+	"_id" : ObjectId("68c121c2800a798220d4bd89"),
+	"name" : "Bablu",
+	"age" : 23,
+	"department" : "IT",
+	"courses" : [
+		"Networks",
+		"DBMS"
+	],
+	"gpa" : 3.5
+}
+{
+	"_id" : ObjectId("68c121c2800a798220d4bd8a"),
+	"name" : "Krishna",
+	"age" : 21,
+	"department" : "Electronics",
+	"courses" : [
+		"Maths",
+		"Circuits"
+	],
+	"gpa" : 3.8
+}
+{
+	"_id" : ObjectId("507f1f77bcf86cd799439011"),
+	"name" : "Tulsi",
+	"age" : 24,
+	"department" : "Mechanical",
+	"courses" : [
+		"Thermodynamics"
+	],
+	"gpa" : 3.3
+}
+> 
+
