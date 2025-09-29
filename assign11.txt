@@ -1,0 +1,120 @@
+> use kali
+switched to db kali
+> db.sales.insertMany([
+...   { product: "Laptop", amount: 1200 },
+...   { product: "Smartphone", amount: 800 },
+...   { product: "Tablet", amount: 600 },
+...   { product: "Laptop", amount: 1500 },
+...   { product: "Smartphone", amount: 700 },
+...   { product: "Smartwatch", amount: 250 },
+...   { product: "Tablet", amount: 500 },
+...   { product: "Laptop", amount: 1000 }
+... ])
+{
+	"acknowledged" : true,
+	"insertedIds" : [
+		ObjectId("68da01549ad81d78e6ee67cf"),
+		ObjectId("68da01549ad81d78e6ee67d0"),
+		ObjectId("68da01549ad81d78e6ee67d1"),
+		ObjectId("68da01549ad81d78e6ee67d2"),
+		ObjectId("68da01549ad81d78e6ee67d3"),
+		ObjectId("68da01549ad81d78e6ee67d4"),
+		ObjectId("68da01549ad81d78e6ee67d5"),
+		ObjectId("68da01549ad81d78e6ee67d6")
+	]
+}
+> var mapFunction = function() {
+...   emit(this.product, this.amount);
+... };
+> var reduceFunction = function(key, values) {
+...   return Array.sum(values);
+... };
+> db.sales.mapReduce(mapFunction,reduceFunction,{ out: "total_sales" })
+{
+	"result" : "total_sales",
+	"timeMillis" : 415,
+	"counts" : {
+		"input" : 8,
+		"emit" : 8,
+		"reduce" : 3,
+		"output" : 4
+	},
+	"ok" : 1
+}
+> db.total_sales.find()
+{ "_id" : "Laptop", "value" : 3700 }
+{ "_id" : "Smartphone", "value" : 1500 }
+{ "_id" : "Smartwatch", "value" : 250 }
+{ "_id" : "Tablet", "value" : 1100 }
+> var reduceFunctionmax = function(key, values){return Math.max.apply(null, values);};
+> db.sales.mapReduce(mapFunction, reduceFunctionmax, { out: "max_sales" });
+{
+	"result" : "max_sales",
+	"timeMillis" : 308,
+	"counts" : {
+		"input" : 8,
+		"emit" : 8,
+		"reduce" : 3,
+		"output" : 4
+	},
+	"ok" : 1
+}
+> db.max_sales.find()
+{ "_id" : "Laptop", "value" : 1500 }
+{ "_id" : "Smartphone", "value" : 800 }
+{ "_id" : "Smartwatch", "value" : 250 }
+{ "_id" : "Tablet", "value" : 600 }
+> var reduceFunctionmin = function(key,values){return Math.min.apply(null,values);};
+> db.sales.mapReduce(mapFunction,reduceFunctionmin,{out:"min_sales"});
+{
+	"result" : "min_sales",
+	"timeMillis" : 305,
+	"counts" : {
+		"input" : 8,
+		"emit" : 8,
+		"reduce" : 3,
+		"output" : 4
+	},
+	"ok" : 1
+}
+> db.min_sales.find()
+{ "_id" : "Laptop", "value" : 1000 }
+{ "_id" : "Smartphone", "value" : 700 }
+{ "_id" : "Smartwatch", "value" : 250 }
+{ "_id" : "Tablet", "value" : 500 }
+> var mapforcount = function(){emit(this.product, 1);};
+> var reduceFunctioncount = function(key, values){return Array.sum(values);};
+> db.sales.mapReduce(mapforcount, reduceFunctioncount, { out: "product_counts"});
+{
+	"result" : "product_counts",
+	"timeMillis" : 306,
+	"counts" : {
+		"input" : 8,
+		"emit" : 8,
+		"reduce" : 3,
+		"output" : 4
+	},
+	"ok" : 1
+}
+> db.product_counts.find()
+{ "_id" : "Laptop", "value" : 3 }
+{ "_id" : "Smartphone", "value" : 2 }
+{ "_id" : "Smartwatch", "value" : 1 }
+{ "_id" : "Tablet", "value" : 2 }
+> db.min_sales.find()
+{ "_id" : "Laptop", "value" : 1000 }
+{ "_id" : "Smartphone", "value" : 700 }
+{ "_id" : "Smartwatch", "value" : 250 }
+{ "_id" : "Tablet", "value" : 500 }
+> db.max_sales.find()
+{ "_id" : "Laptop", "value" : 1500 }
+{ "_id" : "Smartphone", "value" : 800 }
+{ "_id" : "Smartwatch", "value" : 250 }
+{ "_id" : "Tablet", "value" : 600 }
+> db.total_sales.find()
+{ "_id" : "Laptop", "value" : 3700 }
+{ "_id" : "Smartphone", "value" : 1500 }
+{ "_id" : "Smartwatch", "value" : 250 }
+{ "_id" : "Tablet", "value" : 1100 }
+> 
+
