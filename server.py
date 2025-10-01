@@ -1,5 +1,5 @@
 # To run this file type python server.py
-# To see website type http://localhost:8000/
+# To see website type http://localhost:8000/ on any browser
 
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
