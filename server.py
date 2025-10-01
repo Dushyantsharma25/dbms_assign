@@ -1,3 +1,7 @@
+# To run this file type python server.py
+# To see website type http://localhost:8000/
+
+
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import parse_qs, urlparse
 from pymongo import MongoClient
